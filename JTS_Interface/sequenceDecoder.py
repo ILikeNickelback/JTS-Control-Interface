@@ -11,7 +11,7 @@ class sequenceDecoder:
         self.NbAcqu = NbAcqu
         self.TimeBetweenAcqu = TimeBetweenAcqu
         
-    def readSequence(self):
+    def formatSequence(self):
         pattern = r'(\d+)\(([^)]+)\)' # Matches a number followed by a sequence in parentheses
         
         def replace_match(self):
@@ -24,7 +24,7 @@ class sequenceDecoder:
         if expanded_sequence.find('(') != -1 or expanded_sequence.find(')') != -1:
             print("Invalid sequence: missing brackets or no instructions outside of brackets")
             
-        print(expanded_sequence)
+
         return  expanded_sequence
     
     def decodeSequence(self, sequence):
@@ -53,39 +53,47 @@ class sequenceDecoder:
         for char in sequence:
             if char.isdigit():
                 strInt += char
-                if strChar:
-                    listChar.append(strChar)
-                    strChar = ""
             else:
+                listInt.append(strInt)
                 listChar.append(strChar)
                 strChar = char
-
+                strInt = ""
+        listChar.append(strChar)
+  
         # Filter empty strings and convert integers to actual int
         listInt = [int(i) for i in filter(None, listInt)]
         listChar = list(filter(None, listChar))
 
-        # Define time multipliers based on first character of listChar
-        time_multipliers = {'m': 1, 'M': 1, 'u': 1e-03, 'µ': 1e-03, 'U': 1e-03, 'n': 1e-03, 'N': 1e-03}
-        listTime = [time_multipliers.get(c[0], 1) for c in listChar]
+        # Define time multipliers
+        time_multipliers = {'m': 1, 'M': 1, 'u': 1e-03, 'µ': 1e-03, 'U': 1e-03, 'n': 1e-06, 'N': 1e-06}
+        listTime = []
+        for i  in range(len(listChar)):
+            if listChar[i] in time_multipliers:
+                listTime.append(time_multipliers[listChar[i]])
 
         # Compute expected points and prepare final result
         listExpPtsFloat = [float(i * t) for i, t in zip(listInt, listTime)]
-        listChar = [c[1:] for c in listChar]
-
+        
+        #Does not work
+        listChar = [''.join([char for char in c if char.isupper()]) for c in listChar]
+        # Remove empty strings
+        listChar = [c for c in listChar if c]
+        
         # Prepare final output
         listFin = [str(self.NbAcqu), '|', str(self.TimeBetweenAcqu), '|']
         for exp_pts, char in zip(listExpPtsFloat, listChar):
             listFin.extend(['&', str(exp_pts), '^', char])
+        
+        return listFin
 
-        print(listFin)
-
-    
     def sendSequence(self):
         for j in range(len(listFin)):
             mc.write(listFin[j].encode())
         mc.write('\n'.encode())
-    
-sequence = "20msA3(500µsD)"
+
+"""
+sequence = "20msD3(500µsD)"
 decoder = sequenceDecoder(sequence)
-sequence = decoder.readSequence()
+sequence = decoder.formatSequence()
 decoder.decodeSequence(sequence)
+"""

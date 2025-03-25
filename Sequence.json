@@ -1,0 +1,23 @@
+{
+	"Experiment title": "Fluo test with pierre" ,
+	"Experiment type": "Fluo",
+	"Experiment date": "12/02/2025",
+	"Total number of steps": 2,
+	"Total time of experiment": "4000ms" ,
+	"Sequence": {
+		{
+			"Step number": 1,
+			"Type": "Detection",
+			"Dark time": "5ms",
+			"Repetitions": 4 ,
+		},
+		{
+			"Step number": 2,
+			"Type": "Laser",
+			"Dark time": "300µs",
+			"Repetitions": 1,
+		}
+	}
+}
+
+		

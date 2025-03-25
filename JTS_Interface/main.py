@@ -1,44 +1,31 @@
 import sys
-import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+from PyQt5.QtWidgets import QApplication,QGraphicsView,QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
 from PyQt5 import uic
-from Graphics_functions import Pyqt_Graph
-from App_functions import app_functions
+
+from appFunctions import appFunctions
+from graphFunctions import graphFunctions
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('JTS_Designer.ui', self)
-
+        
+        #Create instances of the classes used in the application
+        self.graph  = graphFunctions(self)
+        self.app_functions = appFunctions(self)
+        
+        self.graph_widget = self.findChild(QWidget, 'graphWidget')  # 'graphWidget' is the object name from Designer
+        
+        # Set up the layout of the graph_widget to hold the canvas
+        self.graph_widget.setLayout(self.graph.layout)
+        
         #Add graph to the layout
-        graphicsView = self.findChild(QWidget, 'graphicsView')
-        self.plot = pg.PlotWidget()
-        layout = QVBoxLayout(graphicsView)
-        layout.addWidget(self.plot)
-        Pyqt_Graph.plot_graph(self)
+        layout = QVBoxLayout()
+        layout.addLayout(self.graph.layout)
         
-        #Fetch sequence from table
-        self.fetchSequence.clicked.connect(self.fetch_data)  
-    
-    def fetch_data(self):
-        tab = self.findChild(QWidget, 'tabWidget')
-        active_tab_index = tab.currentIndex()
-        
-        if active_tab_index == 0:     
-            sequence = self.findChild(QWidget, 'tableWidget')
-            sequence_data = app_functions.get_sequence(self, sequence)
-            print(sequence_data)
-        else:
-            sequence = self.findChild(QWidget, 'lineEdit')
-            sequence_data = sequence.text()
-            print(sequence_data)
-        
-
-    def send_sequence_to_arduino(self):
-        pass
-    
-    
-    
+        #Connect functions to the buttons
+        self.start_button.clicked.connect(self.app_functions.start_acquisition)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,42 @@
+{
+    "Experiment details": {
+        "Experiment title": "Fluo test with Pierre",
+        "Experiment type": "Fluo",
+        "Experiment date": "12/02/2025",
+        "Total number of steps": 6,
+        "Averaging": 1,
+        "Total time of experiment": "1000041.0ms"
+    },
+    "Sequence": [
+        {
+            "Step number": 1,
+            "Dark time": "20.0ms",
+            "Action": "A"
+        },
+        {
+            "Step number": 2,
+            "Dark time": "500000.0ms",
+            "Action": "D"
+        },
+        {
+            "Step number": 3,
+            "Dark time": "0.5ms",
+            "Action": "D"
+        },
+        {
+            "Step number": 4,
+            "Dark time": "20.0ms",
+            "Action": "A"
+        },
+        {
+            "Step number": 5,
+            "Dark time": "500000.0ms",
+            "Action": "D"
+        },
+        {
+            "Step number": 6,
+            "Dark time": "0.5ms",
+            "Action": "D"
+        }
+    ]
+}
