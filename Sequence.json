@@ -9,13 +9,13 @@
 			"Step number": 1,
 			"Type": "Detection",
 			"Dark time": "5ms",
-			"Repetitions": 4 ,
+			"Averaging": 1 ,
 		},
 		{
 			"Step number": 2,
 			"Type": "Laser",
 			"Dark time": "300µs",
-			"Repetitions": 1,
+			"Averaging": 1,
 		}
 	}
 }
