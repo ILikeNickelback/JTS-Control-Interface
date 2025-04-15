@@ -86,11 +86,6 @@ class sequenceDecoder:
         
         return listFin
 
-    def sendSequence(self):
-        for j in range(len(listFin)):
-            mc.write(listFin[j].encode())
-        mc.write('\n'.encode())
-
 """
 sequence = "20msD3(500µsD)"
 decoder = sequenceDecoder(sequence)

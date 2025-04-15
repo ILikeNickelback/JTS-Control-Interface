@@ -13,7 +13,7 @@
     <x>0</x>
     <y>0</y>
     <width>955</width>
-    <height>660</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLCDNumber" name="lcdNumber"/>
+        <widget class="QLCDNumber" name="reference_value"/>
        </item>
        <item>
         <widget class="QLCDNumber" name="lcdNumber_2"/>
@@ -48,9 +48,23 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="send_button">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stop_button">
          <property name="text">
           <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="clear_button">
+         <property name="text">
+          <string>Clear</string>
          </property>
         </widget>
        </item>

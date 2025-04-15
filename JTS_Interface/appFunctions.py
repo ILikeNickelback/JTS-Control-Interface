@@ -2,8 +2,7 @@
 from sequenceDecoder import sequenceDecoder
 from serialCommunication import esp32Communication, adcCommunication
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget
-
-
+import time
 """
 This class contains the functions associated to the applications widgets.
 Created: 03/2025 by Christopher
@@ -15,26 +14,33 @@ class appFunctions:
         self.main_app = main_app
         self.esp32 = esp32Communication(self)
         
-    def start_acquisition(self):
+    def send_sequence(self):
         sequence = self.get_sequence_from_user()
-        decoded_sequence = self.decode_sequence(sequence)
-        self.esp32.send_sequence(decoded_sequence)
+        self.decoded_sequence = self.decode_sequence(sequence)
+        self.esp32.send_sequence(self.decoded_sequence)
+     
+    def start_acquisition(self):
         
-        for item  in sequence:
-            self.esp32.ser.write(item.encode())
-        self.esp32.ser.write('\n'.encode())
-        
-        values = self.get_values_from_adc(decoded_sequence)
-        self.main_app.graph.plot_graph(values)
-        
-    def get_values_from_adc(self, decoded_sequence):
-        nbr_of_points = decoded_sequence.count('D')
-        values = []
+        sequence = self.get_sequence_from_user()
+        self.decoded_sequence = self.decode_sequence(sequence)
+        self.esp32.send_sequence(self.decoded_sequence)
+                    
+        self.esp32.read_from_arduino()
+        nbr_of_points = self.decoded_sequence.count('D')
         i = 0
         while i < nbr_of_points:
-            values.append(adcCommunication.get_triggered_value_from_adc())        
+            values = adcCommunication.get_triggered_value_from_adc(self, nbr_of_points)   
+            self.main_app.graph.plot_graph(values, i)
             i += 1
-        return values
+        return True
+    
+    def get_triggered_values_from_adc(self):
+        value = adcCommunication.get_triggered_value_from_adc(self)     
+        return value
+    
+    def get_instant_values_from_adc(self):
+        value = adcCommunication.get_instant_value_from_adc(self)
+        return value
 
     def decode_sequence(self, sequence):
         decoded_sequence = sequenceDecoder(sequence)

@@ -1,5 +1,6 @@
 import serial
 import time
+import math
 import serial.tools.list_ports
 from mcculw import ul
 from mcculw.enums import InterfaceType, TrigType, ULRange, ScanOptions, FunctionType
@@ -18,13 +19,24 @@ Created: 03/2025 by Christopher
 class esp32Communication:
     def __init__(self, app_functions):
         self.app_functions = app_functions
-        self.ser = serial.Serial('COM4', 115200)
+        self.ser = serial.Serial('COM4', 115200, timeout=1) 
         time.sleep(2)
-    
+        
     def send_sequence(self, sequence):
-        for item  in sequence:
-            self.ser.write(item.encode())
-        self.ser.write('\n'.encode())
+        self.ser.write('<'.encode())
+        for item in sequence:
+            for char in item:
+                self.ser.write(char.encode())
+                time.sleep(0.001)
+        self.ser.write('>'.encode())
+        
+            
+    def senf_start_signal(self):
+        self.ser.write('S'.encode())
+        
+    def read_from_arduino(self):    
+        if self.ser.in_waiting > 0: 
+            print(self.ser.readline())
                 
     def find_arduino_port(self, baud_rate):
         ports = serial.tools.list_ports.comports()
@@ -47,32 +59,28 @@ class esp32Communication:
   
 class adcCommunication(): 
     def __init__(self):
-        self.board_num = 1
-        ScanOptions = 0
+        self.board_num = 1 #Defined in InstaCal
+        ul.set_trigger(1, 14,3,4)
+        self.esp32 = esp32Communication()
         
     def get_instant_value_from_adc(self):
         value = ul.a_in_32(board_num = 1, channel = 0, ul_range = 1)
         eng_units_value = ul.to_eng_units_32(board_num = 1, ul_range = 1, data_value = value)
-        print(eng_units_value) 
         return eng_units_value
         
-    def get_triggered_value_from_adc():
-        ul.set_trigger(1, 14,3,4)
-        memhandle = ul.win_buf_alloc_32(1)
+    def get_triggered_value_from_adc(self, nbr_of_points):
+        eng_units_values = []
+        memhandle = ul.win_buf_alloc_32(2)
         data_array = ctypes.cast(memhandle, ctypes.POINTER(ctypes.c_ulong))
-        
+        i = 0
         ul.a_in_scan(board_num = 1, low_chan = 0, high_chan = 0,
-                    num_points = 1,rate = 1000, ul_range = 1,
-                    memhandle = memhandle, options = 16384)
-        
-   
-        eng_units_value = ul.to_eng_units_32(board_num = 1, ul_range = 1, 
-                                                data_value = data_array[0])
+                num_points = 2, rate = 50000, ul_range = 1,
+                memhandle = memhandle, options = ScanOptions.EXTTRIGGER)
+        i += 1
+        eng_units_value_1 = ul.to_eng_units_32(board_num=1, ul_range=1, data_value=data_array[0])
+        eng_units_value_2 = ul.to_eng_units_32(board_num=1, ul_range=1, data_value=data_array[1])
+        eng_units_values.append((eng_units_value_2 - eng_units_value_1))      
+    
         ul.win_buf_free(memhandle)
         data_array = None
-        
-        return eng_units_value
-        
-        
-#a = adcCommunication()
-#a.get_instant_value_from_adc()
+        return eng_units_values
