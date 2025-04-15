@@ -2,9 +2,12 @@
 
 REM Change to your Git repository directory
 cd /d "C:\Users\Christopher\Desktop\Code"
+<<<<<<< HEAD
 
 REM Prompt the user for a commit message
 set /p commit_message=Enter commit message: 
+=======
+>>>>>>> c3363de (Auto commit message)
 
 REM Check the status of changes
 git status
