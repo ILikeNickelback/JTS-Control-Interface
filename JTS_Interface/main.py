@@ -1,7 +1,8 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLCDNumber, QGraphicsView,QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+from PyQt5.QtWidgets import QApplication, QLCDNumber, QGraphicsView, QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
 from PyQt5 import uic
-
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import qdarkstyle
 from appFunctions import appFunctions
 from graphFunctions import graphFunctions
 from workerThread import workerThread
@@ -17,20 +18,19 @@ class MainWindow(QMainWindow):
         
         self.graph_widget = self.findChild(QWidget, 'graphWidget')  # 'graphWidget' is the object name from Designer
         
-        # Set up the layout of the graph_widget to hold the canvas
-        self.graph_widget.setLayout(self.graph.layout)
-        
         self.reference_value = self.findChild(QLCDNumber,'reference_value')
         
         #Add graph to the layout
-        layout = QVBoxLayout()
-        layout.addLayout(self.graph.layout)
+        layout = QVBoxLayout(self.graph_widget)
+        layout.addWidget(self.graph)
         
         #Connect functions to the buttons
-        self.send_button.clicked.connect(self.send_sequence)
+        self.adjust_button.clicked.connect(self.graph.adjust_to_window)
         self.start_button.clicked.connect(self.start_acquisition_in_thread)
         self.clear_button.clicked.connect(self.clear_graph_in_thread)
         self.stop_button.clicked.connect(self.abort_thread)
+
+
         #self.continues_value_thread()
 
 
@@ -38,19 +38,15 @@ class MainWindow(QMainWindow):
         self.acquisition_worker = None
         self.clear_worker = None
         
-    def send_sequence(self):
-        self.app_functions.send_sequence()
     
     def start_acquisition_in_thread(self):
         self.acquisition_worker = workerThread(self.app_functions.start_acquisition)
         self.acquisition_worker.abort_signal.connect(self.cleanup_thread)
         self.acquisition_worker.start()
                 
-                 
     def clear_graph_in_thread(self):
         self.clear_worker = workerThread(self.graph.clear_graph)
         self.clear_worker.start()
-        
     
     def continues_value_thread(self):
         self.continues_value_worker = workerThread(self.app_functions.get_instant_values_from_adc)
@@ -59,7 +55,6 @@ class MainWindow(QMainWindow):
    
     def update_lcd_value(self, value):
         self.reference_value.display(value) 
-
 
     def cleanup_thread(self):
         workers_to_check = [self.acquisition_worker, self.clear_worker]
@@ -81,5 +76,6 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     mainWindow = MainWindow()
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     mainWindow.show()
     sys.exit(app.exec_())
