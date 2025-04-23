@@ -1,11 +1,13 @@
-#Script to test data acquisition and plotting on JTS
 from sequenceDecoder import sequenceDecoder
 import time
 import serial
 import threading
 from serialCommunication import adcCommunication
 
-
+"""
+This class is used to test the functions of the application without using the GUI.
+Created: 03/2025 by Christopher
+"""
 
 class testScript:
     def __init__(self):

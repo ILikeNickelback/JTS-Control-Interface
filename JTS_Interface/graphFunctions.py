@@ -1,16 +1,25 @@
-import sys
-import time
-import numpy as np
-import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from appFunctions import appFunctions
+
+"""
+This class contains the functions that are used for plotting the data and manipulating the graph.
+Created: 03/2025 by Christopher
+"""
+
 
 class graphFunctions(FigureCanvas):
-    def __init__(self, parent=None):
+    def __init__(self, main_app):
         plt.style.use('dark_background')
         self.fig, self.ax = plt.subplots()
         super().__init__(self.fig)
+        
+        self.appFunctions = appFunctions
+        self.main_app = main_app
        
         self._init_ui()
         self._init_interaction()
@@ -36,32 +45,32 @@ class graphFunctions(FigureCanvas):
         self.x_values = []
         self.y_values = []
         
-
-    def plot_graph(self, values, nbr_of_points, i):
+    def plot_graph(self, values, time, i):
         if i == 0:
             self.x_values.clear()
             self.y_values.clear()
         
-        self.x_values.append(nbr_of_points)
-        self.y_values.append(values)
+        self.x_values = values
+        self.y_values = time
         
-        self.ax.plot(self.x_values, self.y_values, 'ro--')   
+        self.ax.plot(self.y_values, self.x_values, 'ro--')   
         self.draw()
         
     def adjust_to_window(self):
-        if not self.x_values or not self.y_values:
-            return  # No data to adjust
+        graph_data = self.main_app.data_management.fetch_data()
+        if not graph_data:
+            return 
         
         # Get data bounds
-        x_min, x_max = min(self.x_values), max(self.x_values)
-        y_min, y_max = min(self.y_values), max(self.y_values)
+        x_min, x_max = min(graph_data[0][0]), max(graph_data[0][0])
+        y_min, y_max = min(graph_data[0][1]), max(graph_data[0][1])
 
         # Add a small margin
         x_margin = (x_max - x_min) * 0.05 if x_max != x_min else 1
         y_margin = (y_max - y_min) * 0.1 if y_max != y_min else 1
 
-        self.ax.set_xlim(x_min - x_margin, x_max + x_margin)
-        self.ax.set_ylim(y_min - y_margin, y_max + y_margin)
+        self.ax.set_ylim(x_min - x_margin, x_max + x_margin)
+        self.ax.set_xlim(y_min - y_margin, y_max + y_margin)
 
         self.fig.tight_layout()
         self.draw()
@@ -137,14 +146,10 @@ class graphFunctions(FigureCanvas):
         self.draw()
             
     def clear_graph(self):
-        """Clear the graph by resetting the data and redrawing an empty plot."""
-        # Clear the data lists
         self.x_values.clear()
         self.y_values.clear()
 
-        # Clear the axes
         self.ax.clear()
 
-        # Redraw the canvas to show an empty plot
         self.ax.grid(True)
         self.draw()

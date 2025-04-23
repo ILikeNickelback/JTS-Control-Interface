@@ -2,6 +2,7 @@ import json
 
 """
 This class is used to create a JSON file from a decoded sequence.
+Not used yet, but it is a good idea to have it in case we need to save the configuration of the experiment.
 Created: 03/2025 by Christopher
 """
 

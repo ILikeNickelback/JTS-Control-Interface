@@ -1,81 +1,74 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QLCDNumber, QGraphicsView, QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+
 from PyQt5 import uic
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import qdarkstyle
+
 from appFunctions import appFunctions
 from graphFunctions import graphFunctions
 from workerThread import workerThread
+from dataManagement import dataManagement
+
+"""
+This class is used to create the main window of the application.
+I might move the button connection to an other class in the future.
+Created: 03/2025 by Christopher
+"""
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('JTS_Designer.ui', self)
+        self.setup_ui()
+        self.init_components()
+        self.init_connections()
         
+        self.acquisition_worker = None
+        self.continues_value_worker  = None
+        
+    def setup_ui(self):
+        uic.loadUi('JTS_Designer.ui', self)
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        
+    def init_components(self):    
         #Create instances of the classes used in the application
+        self.data_management = dataManagement(self)
         self.graph  = graphFunctions(self)
         self.app_functions = appFunctions(self)
+
         
-        self.graph_widget = self.findChild(QWidget, 'graphWidget')  # 'graphWidget' is the object name from Designer
-        
-        self.reference_value = self.findChild(QLCDNumber,'reference_value')
-        
+        self.graph_widget = self.findChild(QWidget, 'graphWidget')
+             
         #Add graph to the layout
         layout = QVBoxLayout(self.graph_widget)
         layout.addWidget(self.graph)
         
-        #Connect functions to the buttons
+    def init_connections(self):
+        #Connect UI buttons to their respective functions
         self.adjust_button.clicked.connect(self.graph.adjust_to_window)
         self.start_button.clicked.connect(self.start_acquisition_in_thread)
-        self.clear_button.clicked.connect(self.clear_graph_in_thread)
-        self.stop_button.clicked.connect(self.abort_thread)
+        self.clear_button.clicked.connect(self.graph.clear_graph)
+        self.save_data_button.clicked.connect(self.app_functions.save_data)
+        self.start_continues_flash.clicked.connect(self.app_functions.start_continues_flashing)
+        self.stop_continues_flash.clicked.connect(self.app_functions.stop_continues_flashing)
 
-
-        #self.continues_value_thread()
-
-
-        # Initialize worker variables to store references
-        self.acquisition_worker = None
-        self.clear_worker = None
-        
-    
     def start_acquisition_in_thread(self):
         self.acquisition_worker = workerThread(self.app_functions.start_acquisition)
-        self.acquisition_worker.abort_signal.connect(self.cleanup_thread)
+        self.acquisition_worker.abort_signal.connect(self.cleanup_acquisition_thread)
         self.acquisition_worker.start()
                 
-    def clear_graph_in_thread(self):
-        self.clear_worker = workerThread(self.graph.clear_graph)
-        self.clear_worker.start()
-    
     def continues_value_thread(self):
         self.continues_value_worker = workerThread(self.app_functions.get_instant_values_from_adc)
-        self.continues_value_worker.result_signal.connect(self.update_lcd_value)
+        self.continues_value_worker.result_signal.connect(self.app_functions.update_lcd_value)
         self.continues_value_worker.start()
-   
-    def update_lcd_value(self, value):
-        self.reference_value.display(value) 
-
-    def cleanup_thread(self):
-        workers_to_check = [self.acquisition_worker, self.clear_worker]
-        for worker in workers_to_check:
-            if worker:
-                if worker.isRunning():
-                    worker.quit()  # Request the thread to quit
-                    worker.wait()  # Wait for the thread to finish
-                worker.deleteLater()  # Clean up the worker
-
-        self.worker = None
-        self.clear_worker = None
-
-    def abort_thread(self):
-        if self.acquisition_worker and self.acquisition_worker.isRunning():
-            self.acquisition_worker.quit()  # Call the abort method on the worker
-            self.acquisition_worker.wait()
-                
+    
+    def cleanup_acquisition_thread(self):
+        print("Acquisition thread stopped and cleaned.")
+        if self.acquisition_worker:
+            self.acquisition_worker.deleteLater()
+            self.acquisition_worker = None        
+                 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     mainWindow = MainWindow()
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    mainWindow.show()
+    mainWindow.showMaximized()
     sys.exit(app.exec_())

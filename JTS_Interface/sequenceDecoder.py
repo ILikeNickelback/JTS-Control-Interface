@@ -1,7 +1,10 @@
 
-import re # Regular expression library
-import numpy as np
+import re
 
+"""
+This class is used to decode the sequence of actions given by the use so that it can be sent to the ESP32.
+Created: 03/2025 by Christopher
+"""
 
 class sequenceDecoder:
     
@@ -85,10 +88,3 @@ class sequenceDecoder:
             listFin.extend(['&', str(exp_pts), '^', char])
         
         return listFin
-
-"""
-sequence = "20msD3(500µsD)"
-decoder = sequenceDecoder(sequence)
-sequence = decoder.formatSequence()
-decoder.decodeSequence(sequence)
-"""
