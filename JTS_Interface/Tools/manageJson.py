@@ -7,13 +7,14 @@ Created: 03/2025 by Christopher
 """
 
 
-class makeJson:
-    def __init__(self, decodedSequence):
+class manageJson:
+    def __init__(self):
+        pass
+
+    
+    def convertConfigToJson(self, decodedSequence):
         remove = ['|', '^', '&']
         self.decodedSequence = [i for i in decodedSequence if i not in remove][2:]
-        print(self.decodedSequence)
-    
-    def getConfig(self):
         experiment_header = {
             "Experiment title": "Fluo test with Pierre",
             "Experiment type": "Fluo",
@@ -50,7 +51,3 @@ class makeJson:
         for i in range(0, len(self.decodedSequence), 2):
             dark_time += float(self.decodedSequence[i])
         return dark_time
-
-# Test
-a = makeJson(['1', '|', '0', '|', '&', '20.0', '^', 'A', '&', '500000.0', '^', 'D', '&', '0.5', '^', 'D', '&', '20.0', '^', 'A', '&', '500000.0', '^', 'D', '&', '0.5', '^', 'D'])
-a.getConfig()

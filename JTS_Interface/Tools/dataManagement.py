@@ -1,4 +1,5 @@
 import csv
+from PyQt5.QtWidgets import QFileDialog, QWidget
 
 """
 This class is used to manage the data acquired from the ESP32.
@@ -27,14 +28,29 @@ class dataManagement():
         pass
     
     def save_data_to_csv(self):
-        #Need to change the path to the one of the user
-        file_name = 'C:/Users/Christopher/Desktop/Code/acquisition_data.csv'
-        with open(file_name, 'w', newline='') as csvfile:
+        parent = QWidget()
+        parent.hide()
+
+        # Open a Save File dialog
+        file_path, _ = QFileDialog.getSaveFileName(
+            parent,
+            "Save CSV",
+            "",
+            "CSV files (*.csv);;All Files (*)"
+        )
+
+        if not file_path:
+            return
+
+        if not file_path.endswith('.csv'):
+            file_path += '.csv'
+
+        with open(file_path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=';')
             writer.writerow(['Acquisition', 'Time', 'Value'])
-            
+
             for i, dataset in enumerate(self.acquired_data):
                 time_array = dataset[0]
                 value_array = dataset[1]
                 for t, v in zip(value_array, time_array):
-                    writer.writerow([i+1, t, v])
+                    writer.writerow([i + 1, t, v])

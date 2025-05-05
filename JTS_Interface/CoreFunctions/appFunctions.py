@@ -1,11 +1,9 @@
 import time
-import numpy as np  
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget,QSpinBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget,QSpinBox, QMessageBox
 
-from sequenceDecoder import sequenceDecoder
-from serialCommunication import esp32Communication, adcCommunication
-from dataManagement import dataManagement
+from Tools.sequenceDecoder import sequenceDecoder
+from Tools.manageJson import manageJson
 
 
 
@@ -17,7 +15,11 @@ Created: 03/2025 by Christopher
 class appFunctions:
     def __init__(self, main_app):
         self.main_app = main_app
-        self.esp32 = esp32Communication(self)
+        
+        self.esp32 = self.main_app.esp32
+        self.adc = self.main_app.adc
+        self.data_management = self.main_app.data_management
+        self.json = manageJson()
         
         self.acquisition_worker = None
         self.reference_value = None
@@ -30,51 +32,48 @@ class appFunctions:
         
         #Get the sequence from the user, decode it and send it to the ESP32
         self.decoded_sequence, nbr_of_points, acquisition_type = self.get_sequence()
-        
-        #Sequence acquisition
-        if acquisition_type == 'Sequence':
-            for i in range(nbr_of_points):
-                start_time  = time.time()
-                value  = adcCommunication.get_triggered_value_from_adc(self)
-                end_time  = time.time()
 
-                time_difference = end_time - start_time
-                
-                if i != 0:
-                    cumulated_time_difference += time_difference
-                    
-                self.x_values.append(value)
-                self.y_values.append(cumulated_time_difference)
-                
-                print(i)
-                
-            #Save data to the data management class for later use (Not working yet)           
-            self.main_app.data_management.add_data(self.x_values, self.y_values)
-                
-            #Plot points on the graph               
-            self.main_app.graph.plot_graph(self.x_values, self.y_values, i) 
+        for i in range(nbr_of_points):
+            start_time  = time.time()
+            reference_value, measurement_value  = self.adc.get_triggered_value_from_adc()
+            end_time  = time.time()
             
-
-
-        #Frequency acquisition (Not working yet)
-        if acquisition_type == 'Frequency':
-            for i in range(nbr_of_points):
-                start_time  = time.time()
-                value  = adcCommunication.get_triggered_value_from_adc(self)
-                end_time  = time.time()
-                self.x_values.append(value)
+            value = (measurement_value - reference_value) 
+            time_difference = end_time - start_time
+            
+            if i != 0:
+                cumulated_time_difference += time_difference
+                
+            self.x_values.append(value)
+            self.y_values.append(cumulated_time_difference)
+            
+            print(i)
+            
+        #Save data to the data management class for later use          
+        self.main_app.data_management.add_data(self.x_values, self.y_values)
+            
+        #Plot points on the graph               
+        self.main_app.graph.plot_graph(self.x_values, self.y_values, i) 
+            
    
     def start_continues_flashing(self):
         sequence = ['#']
+        self.continue_running = True
         self.esp32.send_sequence(sequence)      
           
     def stop_continues_flashing(self):
         sequence = ['@']
+        self.continue_running = False
         self.esp32.send_sequence(sequence)
         
-    def get_instant_values_from_adc(self):
-        self.instant_value =  adcCommunication.get_instant_value_from_adc(self)
-
+    def get_instant_values_from_adc(self, send_result_callback=None):
+        self.start_continues_flashing()
+        while self.continue_running:
+            self.instant_reference_value, self.instant_measurement_value =  self.adc.get_triggered_value_from_adc()
+            self.update_lcd_value()
+            if self.main_app.simulation == True:
+                time.sleep(1)
+            
     def get_sequence(self):
         acquisition_type = self.get_acquisition_type_from_user()
         if acquisition_type == 'Sequence':
@@ -116,19 +115,28 @@ class appFunctions:
         return frequency, nbr_of_points
 
     def save_sequence(self):
-        pass
+        self.json.convertConfigToJson(self.decoded_sequence)
     
     def load_sequence(self):
         pass
     
     def save_data(self):
-        self.dataManagement.save_data_to_csv()
+        if self.data_management.fetch_data() == []:
+            self.display_message("No data to save.")
+        else:
+            self.data_management.save_data_to_csv()
       
     def update_lcd_value(self):
-        #Not working yet 
-        self.reference_value.display(self.instant_value) 
+        self.main_app.reference_value.display(self.instant_reference_value)
+        self.main_app.measuring_value.display(self.instant_measurement_value)
 
     def stop_acquisition(self):
         #Not working yet    
         if self.acquisition_worker:
             self.acquisition_worker.abort()
+            
+    def display_message(self, message):
+        msg = QMessageBox()
+        msg.setText(message)
+        msg.setWindowTitle("Message")
+        msg.exec_()

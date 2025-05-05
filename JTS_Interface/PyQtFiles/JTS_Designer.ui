@@ -81,7 +81,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="plainTextEdit">
          <attribute name="title">
@@ -98,14 +98,14 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QPushButton" name="pushButton_4">
+             <widget class="QPushButton" name="save_sequence">
               <property name="text">
                <string>Save sequence</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_5">
+             <widget class="QPushButton" name="load_sequence">
               <property name="text">
                <string>Load sequence</string>
               </property>
@@ -131,6 +131,9 @@
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="text_frequency">
+              <property name="maximum">
+               <number>30000</number>
+              </property>
               <property name="value">
                <number>10</number>
               </property>
@@ -145,6 +148,12 @@
             </item>
             <item row="1" column="1">
              <widget class="QSpinBox" name="text_nbr_of_points">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>30000</number>
+              </property>
               <property name="value">
                <number>10</number>
               </property>

@@ -1,10 +1,10 @@
+import numpy as np
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
-from appFunctions import appFunctions
 
 """
 This class contains the functions that are used for plotting the data and manipulating the graph.
@@ -18,8 +18,10 @@ class graphFunctions(FigureCanvas):
         self.fig, self.ax = plt.subplots()
         super().__init__(self.fig)
         
-        self.appFunctions = appFunctions
         self.main_app = main_app
+        
+        self.appFunctions = self.main_app.app_functions
+        self.data_management = self.main_app.data_management
        
         self._init_ui()
         self._init_interaction()
@@ -58,12 +60,13 @@ class graphFunctions(FigureCanvas):
         
     def adjust_to_window(self):
         graph_data = self.main_app.data_management.fetch_data()
-        if not graph_data:
-            return 
         
-        # Get data bounds
-        x_min, x_max = min(graph_data[0][0]), max(graph_data[0][0])
-        y_min, y_max = min(graph_data[0][1]), max(graph_data[0][1])
+        if self.data_management.fetch_data() == []:
+            print("No data to save.")
+            return 
+
+        x_min, x_max = min(min(graph_data[0])), max(max(point[0] for point in graph_data))
+        y_min, y_max = min(min(point[1] for point in graph_data)), max(max(point[1] for point in graph_data))
 
         # Add a small margin
         x_margin = (x_max - x_min) * 0.05 if x_max != x_min else 1
@@ -146,9 +149,6 @@ class graphFunctions(FigureCanvas):
         self.draw()
             
     def clear_graph(self):
-        self.x_values.clear()
-        self.y_values.clear()
-
         self.ax.clear()
 
         self.ax.grid(True)

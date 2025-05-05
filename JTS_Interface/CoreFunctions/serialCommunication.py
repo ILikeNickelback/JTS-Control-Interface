@@ -22,8 +22,20 @@ class esp32Communication:
                  baud_rate=115200,
                  timeout=1):
         self.app_functions = app_functions
-        self.ser = serial.Serial(port, baud_rate, timeout=timeout)
-        time.sleep(2)
+        self.ser = None
+        self.port = port
+        self.baud_rate = baud_rate
+        self.timeout = timeout
+        self.open_serial_connection()
+
+    def open_serial_connection(self):
+        try:
+            self.ser = serial.Serial(self.port, self.baud_rate, timeout=self.timeout)
+            time.sleep(2) 
+            print(f"Connected to {self.port} at {self.baud_rate} baud.")
+        except serial.SerialException as e:
+            print(f"Could not open serial port {self.port}: {e}")
+            self.ser = None
         
     def send_sequence(self, sequence):
         self.ser.write('<'.encode())
@@ -38,17 +50,10 @@ class esp32Communication:
             self.is_open = False
     
   
-class adcCommunication(): 
+class adcCommunication: 
     def __init__(self, board_num = 1):
         self.board_num = board_num  #Defined in InstaCal
         ul.set_trigger(1, 14,3,4)   #Set trigger type of trigger (see documentation or go to function definition)
-        self.esp32 = esp32Communication()
-        
-    def get_instant_value_from_adc(self):
-        #Probably won't be used, but I will keep it for now.
-        value = ul.a_in_32(board_num = self.board_num, channel = 0, ul_range = 1)
-        eng_units_value = ul.to_eng_units_32(board_num = self.board_num, ul_range = 1, data_value = value)
-        return eng_units_value
         
     def get_triggered_value_from_adc(self, experiment_type = 'Fluo'):
         #This is the most critical function of the application. It is used to get the value from the ADC when the trigger is activated.
