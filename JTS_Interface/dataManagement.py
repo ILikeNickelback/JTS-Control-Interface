@@ -27,6 +27,7 @@ class dataManagement():
         pass
     
     def save_data_to_csv(self):
+        #Need to change the path to the one of the user
         file_name = 'C:/Users/Christopher/Desktop/Code/acquisition_data.csv'
         with open(file_name, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=';')
