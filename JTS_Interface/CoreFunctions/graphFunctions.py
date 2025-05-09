@@ -1,7 +1,8 @@
 import numpy as np
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRect, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtGui import QPainter, QPen
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -41,7 +42,10 @@ class graphFunctions(FigureCanvas):
             
     def _init_interaction(self):
         self._is_panning = False
-        self._last_mouse_pos = None        
+        self._last_mouse_pos = None 
+        self._is_selecting = False
+        self._selection_start = None
+        self._selection_rect = None       
             
     def _init_data(self):
         self.x_values = []
@@ -64,9 +68,16 @@ class graphFunctions(FigureCanvas):
         if self.data_management.fetch_data() == []:
             print("No data to save.")
             return 
+        
+        all_x, all_y = [], []
 
-        x_min, x_max = min(min(graph_data[0])), max(max(point[0] for point in graph_data))
-        y_min, y_max = min(min(point[1] for point in graph_data)), max(max(point[1] for point in graph_data))
+        for pair in graph_data:
+            x_vals, y_vals = pair
+            all_x.extend(x_vals)
+            all_y.extend(y_vals)
+
+        x_min, x_max = min(all_x), max(all_x)
+        y_min, y_max = min(all_y), max(all_y)
 
         # Add a small margin
         x_margin = (x_max - x_min) * 0.05 if x_max != x_min else 1
@@ -83,16 +94,30 @@ class graphFunctions(FigureCanvas):
         self.zoom(zoom_in)
         
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton and QApplication.keyboardModifiers() == Qt.ControlModifier:
+            self._is_selecting = True
+            self._selection_start = event.pos()
+            self._selection_rect = self._selection_start
+        elif event.button() == Qt.LeftButton:
             self._is_panning = True
-            self._last_mouse_pos = event.pos()   
+            self._last_mouse_pos = event.pos()
                  
     def mouseReleaseEvent(self, event):
+        if self._is_selecting and event.button() == Qt.LeftButton:
+            self._is_selecting = False
+            self.zoom_to_selection()
+            self._selection_start = None
+            self._selection_rect = None
+            self.update()
         if event.button() == Qt.LeftButton:
             self._is_panning = False
             self._last_mouse_pos = None   
                  
     def mouseMoveEvent(self, event):
+        if self._is_selecting and self._selection_start:
+            self._selection_rect = event.pos()
+            self.update()
+            
         if self._is_panning and self._last_mouse_pos:
             delta = event.pos() - self._last_mouse_pos
             dx = delta.x()
@@ -147,7 +172,37 @@ class graphFunctions(FigureCanvas):
         self.ax.set_xlim(new_xlim)
         self.ax.set_ylim(new_ylim)
         self.draw()
-            
+        
+    def zoom_to_selection(self):
+        if not self._selection_start or not self._selection_rect:
+            return
+
+        x0, y0 = self._selection_start.x(), self._selection_start.y()
+        x1, y1 = self._selection_rect.x(), self._selection_rect.y()
+
+        if abs(x1 - x0) < 5 or abs(y1 - y0) < 5:  # prevent tiny clicks from triggering zoom
+            return
+
+        # Convert widget coordinates to data coordinates
+        x0_data, y0_data = self.ax.transData.inverted().transform((x0, y0))
+        x1_data, y1_data = self.ax.transData.inverted().transform((x1, y1))
+
+        self.ax.set_xlim(min(x0_data, x1_data), max(x0_data, x1_data))
+        self.ax.set_ylim(min(y0_data, y1_data), max(y0_data, y1_data))
+        self.draw()
+        
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self._is_selecting and self._selection_start and self._selection_rect:
+            painter = QPainter(self)
+            pen = QPen(Qt.red, 1, Qt.DashLine)
+            painter.setPen(pen)
+            rect = self._make_qrect(self._selection_start, self._selection_rect)
+            painter.drawRect(rect)    
+    
+    def _make_qrect(self, p1, p2):
+        return QRect(p1, p2).normalized()
+               
     def clear_graph(self):
         self.ax.clear()
 

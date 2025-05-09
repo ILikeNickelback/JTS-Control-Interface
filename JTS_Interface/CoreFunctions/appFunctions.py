@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTa
 from Tools.sequenceDecoder import sequenceDecoder
 from Tools.manageJson import manageJson
 
-
+from CoreFunctions.serialCommunication import  adcCommunication
 
 """
 This class contains the functions associated to the applications widgets.
@@ -17,9 +17,10 @@ class appFunctions:
         self.main_app = main_app
         
         self.esp32 = self.main_app.esp32
-        self.adc = self.main_app.adc
+        #self.adc = self.main_app.adc
         self.data_management = self.main_app.data_management
         self.json = manageJson()
+        
         
         self.acquisition_worker = None
         self.reference_value = None
@@ -32,23 +33,26 @@ class appFunctions:
         
         #Get the sequence from the user, decode it and send it to the ESP32
         self.decoded_sequence, nbr_of_points, acquisition_type = self.get_sequence()
+        self.adc = adcCommunication()
 
         for i in range(nbr_of_points):
             start_time  = time.time()
-            reference_value, measurement_value  = self.adc.get_triggered_value_from_adc()
+            reference_value  = self.adc.get_triggered_value_from_adc()
             end_time  = time.time()
             
-            value = (measurement_value - reference_value) 
+            value = (reference_value) 
             time_difference = end_time - start_time
-            
+            print("Time difference: ", time_difference * 1000, "ms")
+
             if i != 0:
                 cumulated_time_difference += time_difference
                 
             self.x_values.append(value)
             self.y_values.append(cumulated_time_difference)
-            
-            print(i)
-            
+        
+        #self.adc.stop_acquisition()
+        
+        #self.adc.stop_acquisition()             
         #Save data to the data management class for later use          
         self.main_app.data_management.add_data(self.x_values, self.y_values)
             
