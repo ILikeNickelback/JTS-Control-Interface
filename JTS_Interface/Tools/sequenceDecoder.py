@@ -1,6 +1,6 @@
 
 import re
-
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget,QSpinBox, QMessageBox
 """
 This class is used to decode the sequence of actions given by the use so that it can be sent to the ESP32.
 Created: 03/2025 by Christopher
@@ -8,13 +8,17 @@ Created: 03/2025 by Christopher
 
 class sequenceDecoder:
     
-    def __init__(self, sequence, mc = None, NbAcqu = 1, TimeBetweenAcqu = 0):
-        self.sequence = ' ' + sequence
+    def __init__(self, main_app, mc = None, NbAcqu = 1, TimeBetweenAcqu = 0):
+        self.main_app = main_app
+        
         self.mc = mc
         self.NbAcqu = NbAcqu
         self.TimeBetweenAcqu = TimeBetweenAcqu
         
-    def formatSequence(self):
+        
+    def formatSequence(self, sequence):
+        self.sequence = ' ' + sequence
+        
         pattern = r'(\d+)\(([^)]+)\)' # Matches a number followed by a sequence in parentheses
         
         def replace_match(self):
@@ -88,3 +92,65 @@ class sequenceDecoder:
             listFin.extend(['&', str(exp_pts), '^', char])
         
         return listFin
+    
+       
+    def get_acquisition_type_from_user(self):
+        tab = self.main_app.findChild(QWidget, 'tabWidget')
+        active_tab_index = tab.currentIndex()
+        if active_tab_index == 0:
+            return "Sequence"
+        else:
+            return "Frequency"
+  
+    def decode_sequence(self):
+        #Decode and send the sequence acquistion to the ESP32  
+        sequence_widget = self.main_app.findChild(QWidget, 'text_sequence')
+        sequence = sequence_widget.toPlainText()
+        formated_sequence = self.formatSequence(sequence)
+        decoded_sequence = self.decodeSequence(formated_sequence)
+        nbr_of_points = decoded_sequence.count('D')
+        return decoded_sequence, nbr_of_points 
+      
+    def decode_frequency(self):
+        #Decode and send the frequency acquisition to the ESP32
+        frequency_widget = self.main_app.findChild(QSpinBox, 'text_frequency')
+        nbr_of_points_widget = self.main_app.findChild(QSpinBox, 'text_nbr_of_points')
+        frequency = int(frequency_widget.value())
+        nbr_of_points = int(nbr_of_points_widget.value())
+        sequence = ['F','T', str(frequency),'^', 'N', str(nbr_of_points), '^']
+        return sequence, nbr_of_points
+    
+    
+    def extract_cumulative_times_from_sequence(self, sequence):
+        if sequence[0] == 'F':
+            time_values = (float(1/int(sequence[2])))
+            cumulative_times = [0]
+            for i in range(1, int(sequence[5])):
+                cumulative_times.append(cumulative_times[i-1] + time_values)
+                            
+
+        else:        
+            def is_float(s):
+                try:
+                    float(s)
+                    return True
+                except ValueError:
+                    return False
+                
+            time_values =  [float(item) for item in sequence if is_float(item)]
+            
+            cumulative_times = []
+            for i in range(2,len(time_values)):
+                cumulative_times.append(sum(time_values[2:i]))
+                       
+        return cumulative_times
+    
+    def get_sequence(self):
+        acquisition_type = self.get_acquisition_type_from_user()
+        if acquisition_type == 'Sequence':
+            decoded_sequence, nbr_of_points = self.decode_sequence()
+            return decoded_sequence, nbr_of_points 
+        
+        if acquisition_type == 'Frequency':
+            frequency, nbr_of_points = self.decode_frequency()
+            return frequency, nbr_of_points

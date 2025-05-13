@@ -9,11 +9,12 @@ Created: 03/2025 by Christopher
 
 #Does not work  yet
 class dataManagement():
-    def __init__(self, main_app):
+    def __init__(self):
         self.acquired_data = []
     
-    def add_data(self, time_array, value_array):
-        self.acquired_data.append([time_array, value_array])
+    def add_data(self, value_array, time_array):
+        for t, v in zip(time_array, value_array):
+            self.acquired_data.append((t, v))  # Store each pair as a tuple
     
     def fetch_data(self):
         return self.acquired_data
@@ -45,12 +46,12 @@ class dataManagement():
         if not file_path.endswith('.csv'):
             file_path += '.csv'
 
-        with open(file_path, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=';')
-            writer.writerow(['Acquisition', 'Time', 'Value'])
-
-            for i, dataset in enumerate(self.acquired_data):
-                time_array = dataset[0]
-                value_array = dataset[1]
-                for t, v in zip(value_array, time_array):
-                    writer.writerow([i + 1, t, v])
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Time', 'Value'])  # Header row
+            for time, value in self.acquired_data:
+                if time == 0:
+                    writer.writerow(["New experiment", ''])
+                    writer.writerow([time, value])
+                else:
+                    writer.writerow([time, value])

@@ -51,10 +51,9 @@ class graphFunctions(FigureCanvas):
         self.x_values = []
         self.y_values = []
         
-    def plot_graph(self, values, time, i):
-        if i == 0:
-            self.x_values.clear()
-            self.y_values.clear()
+    def plot_graph(self, values, time,):
+        self.x_values.clear()
+        self.y_values.clear()
         
         self.x_values = values
         self.y_values = time
