@@ -15,7 +15,16 @@ class sequenceDecoder:
         self.NbAcqu = NbAcqu
         self.TimeBetweenAcqu = TimeBetweenAcqu
         
-        
+    def get_total_number_of_points(self, nbr_of_points, experiment_type):
+        if experiment_type == 'Fluo':
+            NbAcqu = 8
+        elif experiment_type == 'Spectro':
+            NbAcqu = 16
+            
+        total_number_of_points = nbr_of_points * NbAcqu
+        return total_number_of_points
+
+    
     def formatSequence(self, sequence):
         self.sequence = ' ' + sequence
         
@@ -93,7 +102,14 @@ class sequenceDecoder:
         
         return listFin
     
-       
+    def get_experiment_type_from_user(self):
+        spectro_button = self.main_app.findChild(QWidget, 'spectro_button')
+        fluo_button = self.main_app.findChild(QWidget, 'fluo_button')
+        if spectro_button.isChecked():
+            return "Spectro"
+        elif fluo_button.isChecked():
+            return "Fluo"
+      
     def get_acquisition_type_from_user(self):
         tab = self.main_app.findChild(QWidget, 'tabWidget')
         active_tab_index = tab.currentIndex()
@@ -119,11 +135,10 @@ class sequenceDecoder:
         nbr_of_points = int(nbr_of_points_widget.value())
         sequence = ['F','T', str(frequency),'^', 'N', str(nbr_of_points), '^']
         return sequence, nbr_of_points
-    
-    
+      
     def extract_cumulative_times_from_sequence(self, sequence):
         if sequence[0] == 'F':
-            time_values = (float(1/int(sequence[2])))
+            time_values = (float(1/int(sequence[2])) * 1000)
             cumulative_times = [0]
             for i in range(1, int(sequence[5])):
                 cumulative_times.append(cumulative_times[i-1] + time_values)

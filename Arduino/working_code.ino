@@ -22,6 +22,16 @@ char sequence[sizeSequenceMax + 1];
 //Number of bytes received to index command array (Use int and note byte!!!!)
 int bytesRecvd = 0;
 
+//Variables for frequency aquisition
+char countFrequency[256];
+byte indexFrequency = 0;
+float frequency = 0;
+
+char countNbrOfPoints[256];
+byte indexNbrOfPoints = 0;
+float numberOfPoints = 0;
+
+
 //Variables for dark time (time between detections)
 const unsigned int sizeTimeMax = 800;
 char countDarkTime[sizeTimeMax];
@@ -58,7 +68,6 @@ void getSerialData() {
     else{
       sequence[bytesRecvd++] = c;
       }
-    
     }
 }
 
@@ -66,9 +75,9 @@ void getSerialData() {
 void continuesFlashing(){
   while (sequence[0] == continuesMarker){
     timeBetweenFlash = 1;
-    digitalWrite(DPin, HIGH);
-    delay(500); //Long time to check that it actually works on a normal LED
-    digitalWrite(DPin, LOW);
+    digitalWrite(TriggPin, HIGH);
+    delay(5); //Long time to check that it actually works on a normal LED
+    digitalWrite(TriggPin, LOW);
     delay(timeBetweenFlash * 1000);
     getSerialData();
       }
@@ -77,8 +86,8 @@ void continuesFlashing(){
 
 //Function to process the sequence once everything has been received
 void processSequenceAcquisition() {
-  if (sequence[0] != continuesMarker && allReceived && !inProgress && sequence[1] != frequencyAcquisitionMarker){
-    delay(1000); //Just to make sure everything has had time to arrive correctly (Probably don't need this)
+  if (sequence[0] != continuesMarker && allReceived && !inProgress && sequence[0] != frequencyAcquisitionMarker){
+    delay(50); //Just to make sure everything has had time to arrive correctly (Probably don't need this)
     for (int i = 0; i < strlen(sequence); i++) {
         switch (sequence[i]) {
           case 'A':
@@ -101,10 +110,21 @@ void processSequenceAcquisition() {
             delayMicroseconds(5);
             digitalWrite(TriggPin, LOW);
 
+
             //Detection activation
             digitalWrite(DPin, HIGH);
-            delayMicroseconds(20);
+            delayMicroseconds(15);
+            
+            digitalWrite(TriggPin, HIGH);
+            delayMicroseconds(5);
+            digitalWrite(TriggPin, LOW);
+
             digitalWrite(DPin, LOW);
+
+            //             //Trigger pin activation
+            // digitalWrite(TriggPin, HIGH);
+            // delayMicroseconds(5);
+            // digitalWrite(TriggPin, LOW);
 
             darkTime = 0;
             break;
@@ -126,7 +146,7 @@ void processSequenceAcquisition() {
             break;
           case '&':
             indexDarkTime = 0;
-            while (sequence [i] != '^'){
+            while (sequence[i] != '^'){
               countDarkTime[indexDarkTime++] = sequence[i];
               i++;
             }
@@ -135,12 +155,13 @@ void processSequenceAcquisition() {
               countDarkTime[i] = countDarkTime[i+1];
             }
             darkTime = atof(countDarkTime);
-            if (darkTime <= 4){
+            if(darkTime < 2) {
               delayMicroseconds(darkTime*1000);
             }
-            else {
+            else{
               delay(darkTime);
             }
+
             break;
         }
     }
@@ -151,20 +172,54 @@ void processSequenceAcquisition() {
 
 //Function to process the sequence in the frequency domain once everything has been received (for Marcelo but not working yet)
 void processFrequencyAcquisition() {
-  if (sequence[0] == frequencyAcquisitionMarker){
-      int time_between_points = 1/sequence[1];
-    for (int i = 0; i < sequence[2]; i++){
+  if (sequence[0] == frequencyAcquisitionMarker && allReceived && !inProgress && sequence[0] != continuesMarker){
+    delay(50); //Just to make sure everything has had time to arrive correctly (Probably don't need this)
+    
+    for (int i = 0; i < strlen(sequence); i++) {
+      switch (sequence[i]) {
+        case 'T':
+          indexFrequency = 0;
+          i++; // Move past 'T'
+          while (sequence[i] != '^' && i < strlen(sequence)) {
+            countFrequency[indexFrequency++] = sequence[i++];
+          }
+          countFrequency[indexFrequency] = '\0';
+          frequency = (1/atof(countFrequency)*1000);
+          break;
+
+
+        case 'N':
+          indexNbrOfPoints = 0;
+          i++; // Move past 'N'
+          while (sequence[i] != '^' && i < strlen(sequence)) {
+            countNbrOfPoints[indexNbrOfPoints++] = sequence[i++];
+          }
+          countNbrOfPoints[indexNbrOfPoints] = '\0';
+          numberOfPoints = atoi(countNbrOfPoints);
+          break;
+        }
+    }
+
+    for (int i = 0; i < numberOfPoints; i++){
+      //Trigger pin activation
       digitalWrite(TriggPin, HIGH);
       delayMicroseconds(5);
       digitalWrite(TriggPin, LOW);
 
+      //Detection activation
       digitalWrite(DPin, HIGH);
-      delayMicroseconds(20);
+      delayMicroseconds(15);
+      
+      digitalWrite(TriggPin, HIGH);
+      delayMicroseconds(5);
+      digitalWrite(TriggPin, LOW);
+
       digitalWrite(DPin, LOW);
 
-      delay(time_between_points);
-      break;
+      delay(frequency);
     }
+    allReceived = false; 
+    memset(sequence, 0, sizeof(sequence)); //Empty sequence for next time
   }
 }
 

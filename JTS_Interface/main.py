@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLCDNumber, QGraphicsView, QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLCDNumber, QGraphicsView, QGraphicsScene, QMainWindow, QVBoxLayout, QWidget, QTabWidget
 
 from PyQt5 import uic
 import qdarkstyle
@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.init_components()
 
     def setup_ui(self):
-        uic.loadUi('PyQtFiles\JTS_Designer.ui', self)
+        uic.loadUi('PyQtFiles/JTS_Designer.ui', self)
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def init_components(self):
@@ -44,17 +44,26 @@ class MainWindow(QMainWindow):
         self.ui_controller = uiController(self)
        
         
-        
         self.graph_widget = self.findChild(QWidget, 'graphWidget')
         layout = QVBoxLayout(self.graph_widget)
         layout.addWidget(self.graph)
     
     def closeEvent(self, event):
-        # Close the serial connection when the application is closed
-        if not self.simulation:
-            self.esp32.close_serial_connection()
-            self.adc.stop_acquisition()
-        event.accept()    
+        reply = QMessageBox.question(
+            self,
+            "Confirm Exit",
+            "Are you sure you want to close the application?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            if not self.simulation:
+                self.esp32.close_serial_connection()
+            event.accept()   
+        else:
+            event.ignore()
+ 
                  
 if __name__ == "__main__":
     app = QApplication(sys.argv)

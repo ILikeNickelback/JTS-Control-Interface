@@ -62,32 +62,27 @@ class graphFunctions(FigureCanvas):
         self.draw()
         
     def adjust_to_window(self):
-        graph_data = self.main_app.data_management.fetch_data()
+        if not self.ax.lines:
+            return
         
-        if self.data_management.fetch_data() == []:
-            print("No data to save.")
-            return 
+        all_x = np.concatenate([line.get_xdata() for line in self.ax.lines])
+        all_y = np.concatenate([line.get_ydata() for line in self.ax.lines])
         
-        all_x, all_y = [], []
+        if all_x.size == 0 or all_y.size == 0:
+            return
 
-        for pair in graph_data:
-            x_vals, y_vals = pair
-            all_x.extend(x_vals)
-            all_y.extend(y_vals)
+        x_min, x_max = np.min(all_x), np.max(all_x)
+        y_min, y_max = np.min(all_y), np.max(all_y)
 
-        x_min, x_max = min(all_x), max(all_x)
-        y_min, y_max = min(all_y), max(all_y)
-
-        # Add a small margin
         x_margin = (x_max - x_min) * 0.05 if x_max != x_min else 1
         y_margin = (y_max - y_min) * 0.1 if y_max != y_min else 1
 
-        self.ax.set_ylim(x_min - x_margin, x_max + x_margin)
-        self.ax.set_xlim(y_min - y_margin, y_max + y_margin)
+        self.ax.set_xlim(x_min - x_margin, x_max + x_margin)
+        self.ax.set_ylim(y_min - y_margin, y_max + y_margin)
 
         self.fig.tight_layout()
         self.draw()
-        
+            
     def wheelEvent(self, event):
         zoom_in = event.angleDelta().y() > 0
         self.zoom(zoom_in)
@@ -181,10 +176,16 @@ class graphFunctions(FigureCanvas):
 
         if abs(x1 - x0) < 5 or abs(y1 - y0) < 5:  # prevent tiny clicks from triggering zoom
             return
+        
+        def widget_to_canvas(x, y):
+            return x, self.height() - y
+    
+        x0_c, y0_c = widget_to_canvas(x0, y0)
+        x1_c, y1_c = widget_to_canvas(x1, y1)
 
-        # Convert widget coordinates to data coordinates
-        x0_data, y0_data = self.ax.transData.inverted().transform((x0, y0))
-        x1_data, y1_data = self.ax.transData.inverted().transform((x1, y1))
+        # Convert canvas to data coordinates
+        x0_data, y0_data = self.ax.transData.inverted().transform((x0_c, y0_c))
+        x1_data, y1_data = self.ax.transData.inverted().transform((x1_c, y1_c))
 
         self.ax.set_xlim(min(x0_data, x1_data), max(x0_data, x1_data))
         self.ax.set_ylim(min(y0_data, y1_data), max(y0_data, y1_data))

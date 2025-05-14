@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>627</width>
-    <height>735</height>
+    <width>922</width>
+    <height>732</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,34 +32,32 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout_7">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <property name="spacing">
+       <number>0</number>
+      </property>
       <item>
-       <widget class="QPushButton" name="clear_button">
-        <property name="text">
-         <string>Clear</string>
+       <widget class="QWidget" name="graphWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>400</height>
+         </size>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="adjust_button">
-        <property name="text">
-         <string>Adjust</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="save_data_button">
-        <property name="text">
-         <string>Save Data</string>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16770000</height>
+         </size>
         </property>
        </widget>
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="sizePolicy">
@@ -166,74 +164,125 @@
        </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
-         <widget class="QPushButton" name="start_continues_flash">
+         <widget class="QRadioButton" name="spectro_button">
           <property name="text">
-           <string>Flash 1Hz</string>
+           <string>Spectro</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="stop_continues_flash">
+         <widget class="QRadioButton" name="fluo_button">
           <property name="text">
-           <string>Stop 1Hz</string>
+           <string>Fluo</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetNoConstraint</enum>
-        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
-         <widget class="QLCDNumber" name="reference_value"/>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMaximumSize</enum>
+            </property>
+            <item>
+             <widget class="QPushButton" name="start_continues_flash">
+              <property name="text">
+               <string>Flash 1Hz</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="stop_continues_flash">
+              <property name="text">
+               <string>Stop 1Hz</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetNoConstraint</enum>
+            </property>
+            <item>
+             <widget class="QLCDNumber" name="reference_value"/>
+            </item>
+            <item>
+             <widget class="QLCDNumber" name="measuring_value"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QPushButton" name="start_button">
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="stop_button">
+              <property name="text">
+               <string>Stop</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QProgressBar" name="progress_bar">
+              <property name="maximumSize">
+               <size>
+                <width>1600000</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QLCDNumber" name="measuring_value"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="spacing">
-         <number>6</number>
-        </property>
-        <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
-        </property>
-        <item>
-         <widget class="QPushButton" name="start_button">
-          <property name="text">
-           <string>Start</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="stop_button">
-          <property name="text">
-           <string>Stop</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="clear_button">
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="adjust_button">
+            <property name="text">
+             <string>Adjust</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="save_data_button">
+            <property name="text">
+             <string>Save Data</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
      </layout>
-    </item>
-    <item row="1" column="0">
-     <widget class="QWidget" name="graphWidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>400</height>
-       </size>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
@@ -250,7 +299,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>627</width>
+     <width>922</width>
      <height>21</height>
     </rect>
    </property>
