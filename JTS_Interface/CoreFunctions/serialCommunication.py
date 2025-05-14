@@ -149,7 +149,7 @@ class adcCommunication:
         
 
     def get_instant_value_from_adc(self):
-        self.memhandle = ul.win_buf_alloc_32(8)
+        self.memhandle = ul.win_buf_alloc_32(16)
         self.data_array = ctypes.cast(self.memhandle, ctypes.POINTER(ctypes.c_ulong)) #create a pointer to the memory allocated             
         eng_units_values = []
         
@@ -157,13 +157,13 @@ class adcCommunication:
             board_num = self.board_num,
             low_chan = 0,
             high_chan = 7,
-            num_points  = 8,
-            rate = 1, #Ignored with EXT_CLOCK & must not be too high with EXTTRIGGER for some reason
+            num_points  = 16,
+            rate = 20000, #Ignored with EXT_CLOCK & must not be too high with EXTTRIGGER for some reason
             ul_range= ULRange.BIP10VOLTS,
             memhandle=self.memhandle,
             options = ScanOptions.EXTTRIGGER)
         
-        for i in range(8):
+        for i in range(16):
             raw = self.data_array[i]
             voltage = ul.to_eng_units_32(
                 board_num=self.board_num,
@@ -172,9 +172,14 @@ class adcCommunication:
             )
             eng_units_values.append(voltage)
         
-        reference_value = np.mean(eng_units_values[0:3])
-        measurement_value = np.mean(eng_units_values[4:7])
+        first_trig_value_reference = np.mean(eng_units_values[0:3])
+        second_trig_value_reference = np.mean(eng_units_values[8:12])
+        reference_value = (second_trig_value_reference - first_trig_value_reference) * 1000
         
+        first_trig_value_measurement = np.mean(eng_units_values[4:7])
+        second_trig_value_measurement = np.mean(eng_units_values[13:15])
+        measurement_value = second_trig_value_measurement - first_trig_value_measurement
+    
              
         ul.win_buf_free(self.memhandle)
         self.data_array = None
