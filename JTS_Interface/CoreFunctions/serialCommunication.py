@@ -124,15 +124,31 @@ class adcCommunication:
             )
             eng_units_values.append(voltage)
         
-        value_difference  = (np.mean(eng_units_values[4:8]) - np.mean(eng_units_values[0:3]))     
+        
+        if self.samples_per_trigger == 4:
+            first_trig_value = np.mean(eng_units_values[0:3])
+            second_trig_value = np.mean(eng_units_values[4:8])
+            absorbance  = second_trig_value - first_trig_value
+        
+        elif self.samples_per_trigger == 8:
+            first_trig_value_reference = np.mean(eng_units_values[0:3])
+            second_trig_value_reference = np.mean(eng_units_values[8:12])
+            reference_value = second_trig_value_reference - first_trig_value_reference
+            
+            first_trig_value_measurement = np.mean(eng_units_values[4:7])
+            second_trig_value_measurement = np.mean(eng_units_values[13:15])
+            measurement_value = second_trig_value_measurement - first_trig_value_measurement
+                           
+            absorbance = reference_value/(measurement_value + reference_value)
+              
 
         
         self.current_trigger_index += 1
-        return value_difference 
-
+        
+        return absorbance 
+        
 
     def get_instant_value_from_adc(self):
-        
         self.memhandle = ul.win_buf_alloc_32(8)
         self.data_array = ctypes.cast(self.memhandle, ctypes.POINTER(ctypes.c_ulong)) #create a pointer to the memory allocated             
         eng_units_values = []
@@ -156,12 +172,14 @@ class adcCommunication:
             )
             eng_units_values.append(voltage)
         
-        reference_value, measurement_value  = np.mean(eng_units_values[4:8]), (np.mean(eng_units_values[0:3]) * 1000)  
-         
+        reference_value = np.mean(eng_units_values[0:3])
+        measurement_value = np.mean(eng_units_values[4:7])
+        
+             
         ul.win_buf_free(self.memhandle)
         self.data_array = None
         
-        return reference_value, measurement_value 
+        return reference_value, measurement_value
 
     def stop_acquisition(self):
         ul.stop_background(board_num=1, function_type=FunctionType.AIFUNCTION)

@@ -37,7 +37,7 @@ class graphFunctions(FigureCanvas):
         self.layout.addWidget(self)
 
         self.ax.grid(True)
-        self.ax.set_xlabel('Time (s)')
+        self.ax.set_xlabel('Time (ms)')
         self.ax.set_ylabel('Value')
             
     def _init_interaction(self):
@@ -207,4 +207,7 @@ class graphFunctions(FigureCanvas):
         self.ax.clear()
 
         self.ax.grid(True)
+        self.ax.set_xlabel('Time (ms)')
+        self.ax.set_ylabel('Value')
+        
         self.draw()

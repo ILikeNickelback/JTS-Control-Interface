@@ -59,14 +59,14 @@ class uiController(QObject):
              
     def cleanup_continues_value_thread(self):        
         if self.continues_value_worker:
-            self.continues_value_worker.wait()
+            # self.continues_value_worker.wait()
             self.continues_value_worker.deleteLater()
             self.continues_value_worker = None
             print("Continues thread stopped")
 
     def cleanup_acquisition_thread(self):
         if self.acquisition_worker:
-            self.continues_value_worker.wait()
-            self.continues_value_worker.deleteLater()
+            # self.acquisition_worker.wait()
+            self.acquisition_worker.deleteLater()
             self.acquisition_worker = None
             print("Acqistion thread stopped")

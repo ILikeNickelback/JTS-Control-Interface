@@ -45,8 +45,8 @@ class appFunctions:
         
         
         for i in range(self.nbr_of_points):
-            reference_value  = self.adc.get_triggered_value_from_adc()
-            self.voltage_values.append(reference_value)
+            absorbance  = self.adc.get_triggered_value_from_adc()
+            self.voltage_values.append(absorbance)
 
         self.adc.stop_acquisition()
                  
