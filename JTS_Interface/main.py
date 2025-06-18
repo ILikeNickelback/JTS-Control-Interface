@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setup_ui()
-        self.simulation = False  # Set to True for simulation mode, False for real ESP32 communication
+        self.simulation = True  # Set to True for simulation mode, False for real ESP32 communication
         self.init_components()
 
     def setup_ui(self):

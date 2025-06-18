@@ -1,11 +1,6 @@
 #define TriggPin 9  //Trigger pin
-#define DPin 8      //Detection pin
-
-//Unused pins for the moment
-#define APin 4
-#define CPin 5
-#define EPin 6
-#define FPin 7
+#define DPin 10      //Detection pin
+#define APin 11
 
 //Variables for the received sequence
 #define startMarker '<'
@@ -174,7 +169,6 @@ void processSequenceAcquisition() {
     memset(sequence, 0, sizeof(sequence)); //Empty sequence for next time
     }
 }
-
 //Function to process the sequence in the frequency domain once everything has been received (for Marcelo but not working yet)
 void processFrequencyAcquisition() {
   if (sequence[0] == frequencyAcquisitionMarker && allReceived && !inProgress && sequence[0] != continuesMarker){
@@ -205,23 +199,20 @@ void processFrequencyAcquisition() {
         }
     }
 
-    for (int i = 0; i < numberOfPoints; i++){
-      //Trigger pin activation
-      digitalWrite(TriggPin, HIGH);
-      delayMicroseconds(5);
-      digitalWrite(TriggPin, LOW);
-
-      //Detection activation
-      digitalWrite(DPin, HIGH);
-      delayMicroseconds(15);
+    startMillis = millis();
+    t = 0;
+    max_time = numberOfPoints * (1/frequency) * 1000;
+    while (t < max_time ){
+      t = (millis() - startMillis);   
+      PWM_value = round((amp_fact * max_amp * sin(2 * PI *(frequency/1000)* t) + offset_fact * max_amp));
+      analogWrite(ledChannel, PWM_value)
+      delay(1);
       
       digitalWrite(TriggPin, HIGH);
       delayMicroseconds(5);
       digitalWrite(TriggPin, LOW);
 
-      digitalWrite(DPin, LOW);
-
-      delay(frequency);
+      delay((1/frequency) * 1000 * 10);
     }
     allReceived = false; 
     memset(sequence, 0, sizeof(sequence)); //Empty sequence for next time

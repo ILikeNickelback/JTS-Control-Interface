@@ -129,11 +129,27 @@ class sequenceDecoder:
       
     def decode_frequency(self):
         #Decode and send the frequency acquisition to the ESP32
-        frequency_widget = self.main_app.findChild(QSpinBox, 'text_frequency')
-        nbr_of_points_widget = self.main_app.findChild(QSpinBox, 'text_nbr_of_points')
+        period_frequency_widget = self.main_app.findChild(QSpinBox, 'period_frequency')
+        nbr_of_periods_widget = self.main_app.findChild(QSpinBox, 'nbr_of_periods')
+        amplitude_widget = self.main_app.findChild(QSpinBox, 'amplitude')
+        offset_widget = self.main_app.findChild(QSpinBox, 'offset')
+        pre_detection_periods_widget = self.main_app.findChild(QSpinBox, 'pre_detection_periods')
+        post_detection_periods_widget = self.main_app.findChild(QSpinBox, 'post_detection_periods')
+        
         frequency = int(frequency_widget.value())
         nbr_of_points = int(nbr_of_points_widget.value())
-        sequence = ['F','T', str(frequency),'^', 'N', str(nbr_of_points), '^']
+        amplitude = int(amplitude_widget.value())
+        offset = int(offset_widget.value())
+        pre_detection_periods = int(pre_detection_periods_widget.value())
+        post_detection_periods = int(post_detection_periods_widget.value())
+        
+        sequence = ['F','T', str(frequency),'^',
+                    'N', str(nbr_of_points), '^'
+                    'A', str(amplitude), '^',
+                    'O', str(offset), '^',
+                    'P', str(pre_detection_periods), '^',
+                    'D', str(post_detection_periods), '^']	
+        
         return sequence, nbr_of_points
       
     def extract_cumulative_times_from_sequence(self, sequence):

@@ -74,6 +74,12 @@ class appFunctions:
         self.main_app.start_button.setEnabled(True)
         self.esp32.send_sequence(sequence)
         
+    def strat_constant_light(self):
+        offset_widget = self.main_app.findChild(QSpinBox, 'offset')
+        offset = int(offset_widget.value())
+        sequence = ['O', str(offset)]
+        self.esp32.send_sequence(sequence)
+        
     def get_instant_values_from_adc(self):
         self.start_continues_flashing()
         self.stop_event.clear()

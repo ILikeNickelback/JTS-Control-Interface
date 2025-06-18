@@ -31,7 +31,17 @@ class simulated_adcCommunication:
     def __init__(self):
         pass
     
+    def init_adc(self, number_of_points, experiment_type):
+        pass
+        
     def get_triggered_value_from_adc(self):
         simulated_referecnce_value = random.randint(-10, 10)  # Simulate a random value for fluorescence
         simulated_measurement_value = random.randint(-10, 10)
         return simulated_referecnce_value, simulated_measurement_value 
+    
+    def stop_acquisition(self):
+        pass
+    
+    def get_status(self):
+        number = 10
+        return number
